@@ -47,7 +47,6 @@
         <che.version>5.3.0-SNAPSHOT</che.version>
         <codenvy.analytics.version>3.13.4</codenvy.analytics.version>
         <codenvy.docs.version>5.3.0-SNAPSHOT</codenvy.docs.version>
-        <com.braintreepayments.gateway.version>2.39.2</com.braintreepayments.gateway.version>
         <com.codahale.metrics.version>3.0.2</com.codahale.metrics.version>
         <com.dumbster.version>1.7.1</com.dumbster.version>
         <com.github.cloudfoundry-community.nats-client.version>0.5.1</com.github.cloudfoundry-community.nats-client.version>
@@ -86,11 +85,6 @@
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-ecr</artifactId>
                 <version>${aws.java.sdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.braintreepayments.gateway</groupId>
-                <artifactId>braintree-java</artifactId>
-                <version>${com.braintreepayments.gateway.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.codahale.metrics</groupId>
