@@ -25,6 +25,7 @@ import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.Page;
 import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.workspace.server.stack.StackService;
+import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.commons.env.EnvironmentContext;
 import org.eclipse.che.commons.subject.Subject;
 import org.eclipse.che.everrest.CheMethodInvokerFilter;
@@ -125,23 +126,37 @@ public class StackPermissionsFilter extends CheMethodInvokerFilter {
      */
     private boolean isStackPredefined(String stackId) throws ServerException {
         try {
-            for (Page<AbstractPermissions> permissionsPage = permissionsManager.getByInstance(DOMAIN_ID, stackId, 25, 0);
-                 permissionsPage.hasNextPage();
-                 permissionsPage = getNextPermissionsPage(permissionsPage, stackId)) {
+            Page<AbstractPermissions> permissionsPage = null;
+            do {
+                permissionsPage = getNextPermissionsPage(stackId, permissionsPage);
                 for (AbstractPermissions stackPermission : permissionsPage.getItems()) {
-                    if (stackPermission.getUserId() == null) { // null == *
+                    if ("*".equals(stackPermission.getUserId())) {
                         return true;
                     }
                 }
-            }
+            } while (permissionsPage.hasNextPage());
         } catch (ConflictException | NotFoundException e) { /* consider that stack is not predefined */ }
         return false;
     }
 
-    private Page<AbstractPermissions> getNextPermissionsPage(Page<AbstractPermissions> permissionsPage,
-                                                             String stackId) throws NotFoundException,
-                                                                                    ConflictException,
-                                                                                    ServerException {
+    /**
+     * Retrieves next permission page for given stack.
+     * If previous page provided as null then first page will be retrieved.
+     *
+     * @param stackId
+     *         id of stack to which permissions will be obtained
+     * @param permissionsPage
+     *         previous permission page
+     * @return next permissions page for given stack
+     */
+    private Page<AbstractPermissions> getNextPermissionsPage(String stackId,
+                                                             @Nullable Page<AbstractPermissions> permissionsPage) throws NotFoundException,
+                                                                                                                         ConflictException,
+                                                                                                                         ServerException {
+        if (permissionsPage == null) {
+            // get first page
+            return permissionsManager.getByInstance(DOMAIN_ID, stackId, 25, 0);
+        }
         if (!permissionsPage.hasNextPage()) {
             return null;
         }
