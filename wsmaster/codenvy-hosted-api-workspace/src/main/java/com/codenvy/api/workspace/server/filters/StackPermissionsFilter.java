@@ -126,43 +126,37 @@ public class StackPermissionsFilter extends CheMethodInvokerFilter {
      */
     private boolean isStackPredefined(String stackId) throws ServerException {
         try {
-            Page<AbstractPermissions> permissionsPage = null;
+            Page<AbstractPermissions> permissionsPage = permissionsManager.getByInstance(DOMAIN_ID, stackId, 25, 0);
             do {
-                permissionsPage = getNextPermissionsPage(stackId, permissionsPage);
                 for (AbstractPermissions stackPermission : permissionsPage.getItems()) {
                     if ("*".equals(stackPermission.getUserId())) {
                         return true;
                     }
                 }
-            } while (permissionsPage.hasNextPage());
-        } catch (ConflictException | NotFoundException e) { /* consider that stack is not predefined */ }
+            } while ((permissionsPage = getNextPermissionsPage(stackId, permissionsPage)) != null);
+        } catch (NotFoundException e) {
+            // should never happens
+            throw new ServerException(e);
+        }
         return false;
     }
 
     /**
-     * Retrieves next permission page for given stack.
-     * If previous page provided as null then first page will be retrieved.
+     * Retrieves next permissions page for given stack.
      *
      * @param stackId
      *         id of stack to which permissions will be obtained
      * @param permissionsPage
-     *         previous permission page
-     * @return next permissions page for given stack
-     * @throws NotFoundException
-     *         when given page doesn't have next page
+     *         previous permissions page
+     * @return next permissions page for given stack or null if next page doesn't exist
      * @throws ServerException
      *         when any error occurs during permissions fetching
      */
     private Page<AbstractPermissions> getNextPermissionsPage(String stackId,
-                                                             @Nullable Page<AbstractPermissions> permissionsPage) throws NotFoundException,
-                                                                                                                         ConflictException,
-                                                                                                                         ServerException {
-        if (permissionsPage == null) {
-            // get first page
-            return permissionsManager.getByInstance(DOMAIN_ID, stackId, 25, 0);
-        }
+                                                             Page<AbstractPermissions> permissionsPage) throws NotFoundException,
+                                                                                                               ServerException {
         if (!permissionsPage.hasNextPage()) {
-            throw new NotFoundException("Next permissions page not found");
+            return null;
         }
 
         final Page.PageRef nextPageRef = permissionsPage.getNextPageRef();
