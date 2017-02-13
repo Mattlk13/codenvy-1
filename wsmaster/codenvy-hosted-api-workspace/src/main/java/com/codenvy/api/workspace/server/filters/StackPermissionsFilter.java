@@ -103,7 +103,7 @@ public class StackPermissionsFilter extends CheMethodInvokerFilter {
                 throw new ForbiddenException("The user does not have permission to perform this operation");
         }
 
-        if (currentSubject.hasPermission(SystemDomain.DOMAIN_ID, stackId, SystemDomain.MANAGE_SYSTEM_ACTION)
+        if (currentSubject.hasPermission(SystemDomain.DOMAIN_ID, null, SystemDomain.MANAGE_SYSTEM_ACTION)
             && isStackPredefined(stackId)) {
             // allow any operation with predefined stack if user has 'manageSystem' permission
             return;
@@ -148,6 +148,10 @@ public class StackPermissionsFilter extends CheMethodInvokerFilter {
      * @param permissionsPage
      *         previous permission page
      * @return next permissions page for given stack
+     * @throws NotFoundException
+     *         when given page doesn't have next page
+     * @throws ServerException
+     *         when any error occurs during permissions fetching
      */
     private Page<AbstractPermissions> getNextPermissionsPage(String stackId,
                                                              @Nullable Page<AbstractPermissions> permissionsPage) throws NotFoundException,
@@ -158,7 +162,7 @@ public class StackPermissionsFilter extends CheMethodInvokerFilter {
             return permissionsManager.getByInstance(DOMAIN_ID, stackId, 25, 0);
         }
         if (!permissionsPage.hasNextPage()) {
-            return null;
+            throw new NotFoundException("Next permissions page not found");
         }
 
         final Page.PageRef nextPageRef = permissionsPage.getNextPageRef();
