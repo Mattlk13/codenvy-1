@@ -159,7 +159,7 @@ public class PermissionsManager {
                                                    String instanceId,
                                                    int maxItems,
                                                    long skipCount) throws ServerException,
-                                                                         NotFoundException {
+                                                                          NotFoundException {
         return (Page<AbstractPermissions>)getPermissionsDao(domainId).getByInstance(instanceId, maxItems, skipCount);
     }
 
