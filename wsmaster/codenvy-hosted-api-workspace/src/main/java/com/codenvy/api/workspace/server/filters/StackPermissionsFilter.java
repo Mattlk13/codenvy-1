@@ -17,15 +17,14 @@ package com.codenvy.api.workspace.server.filters;
 import com.codenvy.api.permission.server.PermissionsManager;
 import com.codenvy.api.permission.server.SystemDomain;
 import com.codenvy.api.permission.server.model.impl.AbstractPermissions;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 
-import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.ForbiddenException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.Page;
 import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.workspace.server.stack.StackService;
-import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.commons.env.EnvironmentContext;
 import org.eclipse.che.commons.subject.Subject;
 import org.eclipse.che.everrest.CheMethodInvokerFilter;
@@ -124,7 +123,8 @@ public class StackPermissionsFilter extends CheMethodInvokerFilter {
      * @throws ServerException
      *         when any error occurs during permissions fetching
      */
-    private boolean isStackPredefined(String stackId) throws ServerException {
+    @VisibleForTesting
+    boolean isStackPredefined(String stackId) throws ServerException {
         try {
             Page<AbstractPermissions> permissionsPage = permissionsManager.getByInstance(DOMAIN_ID, stackId, 25, 0);
             do {
@@ -152,15 +152,16 @@ public class StackPermissionsFilter extends CheMethodInvokerFilter {
      * @throws ServerException
      *         when any error occurs during permissions fetching
      */
-    private Page<AbstractPermissions> getNextPermissionsPage(String stackId,
-                                                             Page<AbstractPermissions> permissionsPage) throws NotFoundException,
-                                                                                                               ServerException {
+    @VisibleForTesting
+    Page<AbstractPermissions> getNextPermissionsPage(String stackId,
+                                                     Page<AbstractPermissions> permissionsPage) throws NotFoundException,
+                                                                                                       ServerException {
         if (!permissionsPage.hasNextPage()) {
             return null;
         }
 
         final Page.PageRef nextPageRef = permissionsPage.getNextPageRef();
-        return permissionsManager.getByInstance(DOMAIN_ID, stackId, nextPageRef.getPageSize(), (int) nextPageRef.getItemsBefore());
+        return permissionsManager.getByInstance(DOMAIN_ID, stackId, nextPageRef.getPageSize(), nextPageRef.getItemsBefore());
     }
 
 }
